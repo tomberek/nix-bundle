@@ -26,11 +26,13 @@ in rec {
       exportReferencesGraph = map (x: [("closure-" + baseNameOf x) x]) targets;
       buildCommand = ''
         storePaths=$(perl ${pathsFromGraph} ./closure-*)
+        mkdir bin
+        ln -s ${nixpkgs.bash}/bin/sh ./bin/sh
 
         tar -cf - \
           --owner=0 --group=0 --mode=u+rw,uga+r \
           --hard-dereference \
-          $storePaths | bzip2 -z > $out
+          $storePaths ./bin/sh | bzip2 -z > $out
       '';
     };
 
@@ -70,7 +72,13 @@ in rec {
 
   makeStartup = { target, nixUserChrootFlags, nix-user-chroot', run }:
   writeScript "startup" ''
-.${nix-user-chroot'}/bin/nix-user-chroot -n ./nix ${nixUserChrootFlags} -- ${target}${run} $@
+export NIX_PATH=nixpkgs=http://nixos.org/channels/nixpkgs-unstable/nixexprs.tar.xz
+export IN_NIX_USER_CHROOT=1
+tail -n+3 "$1" | sed '/#ENDSENTINEL/q' > ./nix/currun
+chmod +x ./nix/currun
+ln -sf ${nixpkgs.coreutils}/bin/env ./nix/env
+export PATH="${nixpkgs.xz}/bin:${nixpkgs.gnutar}/bin:${nixpkgs.coreutils}/bin:${nixpkgs.nix}/bin"
+.${nix-user-chroot'}/bin/nix-user-chroot -p PATH -p IN_NIX_USER_CHROOT -n ./nix ${nixUserChrootFlags} -- /nix/currun "$@"
   '';
 
   nix-bootstrap = { target, extraTargets ? [], run, nix-user-chroot' ? nix-user-chroot, nixUserChrootFlags ? "" }:
@@ -84,7 +92,7 @@ in rec {
   nix-bootstrap-nix = {target, run, extraTargets ? []}:
     nix-bootstrap-path {
       inherit target run;
-      extraTargets = [ gnutar bzip2 xz gzip coreutils bash ];
+      extraTargets = [ nix gnutar bzip2 xz gzip coreutils bash ];
     };
 
   # special case adding path to the environment before launch
