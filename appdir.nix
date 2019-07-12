@@ -65,12 +65,12 @@ in
 
       # icons
       if [ -d ${target}/share/icons ]; then
-        icon=$(find ${target}/share/icons -name "${name}.png" | head -n1)
+        icon=$(find ${target}/share/icons -name "${name}*.png" | head -n1)
         if ! [ -z "$icon" ]; then
           ln -s .$icon
           ln -s .$icon .DirIcon
         else
-          icon=$(find ${target}/share/icons -name "${name}.svg" | head -n1)
+          icon=$(find ${target}/share/icons -name "${name}*.svg" | head -n1)
           if ! [ -z "$icon" ]; then
             ln -s .$icon
             ln -s .$icon .DirIcon
