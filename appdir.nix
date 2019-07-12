@@ -43,6 +43,8 @@ in
 
       mkdir -p nix/store
       cp -r $storePaths nix/store
+      mkdir nix/store/.links
+      mkdir -p nix/var
 
       ln -s .${target} usr
 
