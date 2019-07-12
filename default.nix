@@ -26,11 +26,13 @@ in rec {
       exportReferencesGraph = map (x: [("closure-" + baseNameOf x) x]) targets;
       buildCommand = ''
         storePaths=$(perl ${pathsFromGraph} ./closure-*)
+        mkdir bin
+        ln -s ${nixpkgs.bash}/bin/sh ./bin/sh
 
         tar -cf - \
           --owner=0 --group=0 --mode=u+rw,uga+r \
           --hard-dereference \
-          $storePaths | bzip2 -z > $out
+          $storePaths ./bin/sh | bzip2 -z > $out
       '';
     };
 
@@ -85,7 +87,7 @@ in rec {
   nix-bootstrap-nix = {target, run, extraTargets ? []}:
     nix-bootstrap-path {
       inherit target run;
-      extraTargets = [ gnutar bzip2 xz gzip coreutils bash ];
+      extraTargets = [ nix gnutar bzip2 xz gzip coreutils bash ];
     };
 
   # special case adding path to the environment before launch

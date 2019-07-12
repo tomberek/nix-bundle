@@ -8,6 +8,13 @@ package,
 exec,
 ... }:
 let
+  nix-bundle_src = ./.;
+  nix-bundle_src2 = nixpkgs.fetchFromGitHub {
+    owner = "matthewbauer";
+    repo = "nix-bundle";
+    rev = "e85fff67887ba8fdeafd888f8c8ed62feb5e1ee0";
+    sha256 = "0swh0gnnvf0gg8v5l7pm4lf7qvdfp3chl3vq5bzfkzq6bsn42nnz";
+  };
   appimage_src = drv : exec : with nixpkgs;
     self.stdenv.mkDerivation rec {
       name = drv.name + "-appdir";
